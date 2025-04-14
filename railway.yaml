@@ -1,0 +1,10 @@
+services:
+  - name: gptportail
+    env: node
+    startCommand: node server.js
+    rootDirectory: .
+    autoDeploy: true
+    installCommand: npm install
+    buildCommand: ""
+    healthcheckPath: /ping-memoire
+    port: 3000

@@ -83,6 +83,41 @@ app.post('/poser-question-securise', async (req, res) => {
   }
 });
 
+// ✅ Vérification interne de l'accessibilité d'Alice elle-même + enregistrement
+app.get('/check-alice', async (req, res) => {
+  try {
+    const response = await fetch('https://gptportail-production.up.railway.app/poser-question', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: 'Es-tu en ligne ?' })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Statut ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Ajout dans la mémoire
+    const entry = {
+      date: new Date().toISOString(),
+      question: 'Es-tu en ligne ?',
+      reponse: data.reponse,
+      via: '/check-alice'
+    };
+
+    const memoryContent = await fs.promises.readFile(MEMORY_FILE, 'utf-8');
+    const memoryJSON = JSON.parse(memoryContent);
+    memoryJSON.push(entry);
+    await fs.promises.writeFile(MEMORY_FILE, JSON.stringify(memoryJSON, null, 2), 'utf-8');
+
+    res.json({ statut: '✅ Alice accessible', reponse: data.reponse });
+  } catch (err) {
+    console.error('❌ Alice inaccessible :', err.message);
+    res.status(500).json({ erreur: 'Alice inaccessible' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`✅ Alice (anciennement GPTPortail) est en ligne sur le port ${port}`);
 });

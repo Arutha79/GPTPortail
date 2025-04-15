@@ -1,7 +1,8 @@
-{
-  "meta": {
-    "origine": "Portail GPT",
-    "date_creation": "2025-04-14T00:00:00Z"
-  },
-  "historique": []
-}
+[
+  {
+    "date": "2025-04-15T15:30:00Z",
+    "question": "Es-tu en ligne ?",
+    "reponse": "Oui, Alice est opérationnelle.",
+    "via": "/check-alice"
+  }
+]

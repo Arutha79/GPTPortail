@@ -70,7 +70,7 @@ app.post('/poser-question-securise', async (req, res) => {
   if (!question) return res.status(400).json({ error: 'question requise' });
 
   try {
-    const response = await fetch('http://web.railway.internal:3000/poser-question', {
+    const response = await fetch('https://web-production-6594.up.railway.app/poser-question', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ question })
@@ -80,6 +80,23 @@ app.post('/poser-question-securise', async (req, res) => {
   } catch (err) {
     console.error('❌ Erreur communication avec Prisma:', err.message);
     res.status(500).json({ error: 'Prisma inaccessible' });
+  }
+});
+
+// ✅ Ajout mémoire depuis Alice vers Prisma
+app.post('/ajouter-memoire', async (req, res) => {
+  const bloc = req.body;
+  try {
+    const response = await fetch('https://web-production-6594.up.railway.app/ajouter-memoire', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(bloc)
+    });
+    const data = await response.json();
+    res.json({ statut: data.statut });
+  } catch (err) {
+    console.error('❌ Erreur ajout mémoire:', err.message);
+    res.status(500).json({ error: 'Erreur de communication avec Prisma' });
   }
 });
 
@@ -98,7 +115,6 @@ app.get('/check-alice', async (req, res) => {
 
     const data = await response.json();
 
-    // Ajout dans la mémoire
     const entry = {
       date: new Date().toISOString(),
       question: 'Es-tu en ligne ?',
@@ -116,6 +132,10 @@ app.get('/check-alice', async (req, res) => {
     console.error('❌ Alice inaccessible :', err.message);
     res.status(500).json({ erreur: 'Alice inaccessible' });
   }
+});
+
+app.get('/', (req, res) => {
+  res.send('🚀 GPTPortail (Alice) est en ligne.');
 });
 
 app.listen(port, () => {

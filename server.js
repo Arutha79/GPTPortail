@@ -112,11 +112,11 @@ app.post('/poser-question-securise', async (req, res) => {
   }
 });
 
-// ✅ Ajout mémoire depuis Alice vers Prisma
+// ✅ Ajout mémoire depuis Alice vers elle-même (GPTPortail)
 app.post('/ajouter-memoire', async (req, res) => {
   const bloc = req.body;
   try {
-    const response = await fetch('https://web-production-6594.up.railway.app/ajouter-memoire', {
+    const response = await fetch('https://gptportail-production.up.railway.app/ajouter-memoire', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(bloc)
@@ -125,7 +125,7 @@ app.post('/ajouter-memoire', async (req, res) => {
     res.json({ statut: data.statut });
   } catch (err) {
     console.error('❌ Erreur ajout mémoire:', err.message);
-    res.status(500).json({ error: 'Erreur de communication avec Prisma' });
+    res.status(500).json({ error: 'Erreur de communication avec GPTPortail (Alice)' });
   }
 });
 

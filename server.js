@@ -9,7 +9,7 @@ const { Configuration, OpenAIApi } = require('openai');
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT;
+const port = process.env.PORT || 3000;
 const MEMORY_FILE = path.join(__dirname, 'prisma_memory.json');
 
 const configuration = new Configuration({
@@ -19,15 +19,44 @@ const openai = new OpenAIApi(configuration);
 
 app.use(express.json());
 
+// ✅ GPTs VITAUX (URLs de délégation depuis Alice)
+const AGENTS_VITAUX = {
+  PromptGPT: "https://promptgpt-production.up.railway.app/",
+  SynthéPro: "https://synth-pro-production.up.railway.app/",
+  BuilderGPT: "https://buildergpt-production.up.railway.app/",
+  GPTClonerGPT: "https://gptclonergpt-production.up.railway.app/",
+  SentinelleIA: "https://sentinelleia-production.up.railway.app/",
+  CheckerGPT: "https://checkergpt-production.up.railway.app/",
+  TextGPT: "https://textgpt-production-d174.up.railway.app/",
+  DevGPT: "https://devgpt-production.up.railway.app/",
+  ImageGPT: "https://imagegpt-production.up.railway.app/",
+  MedecinGPT: "https://m-decingpt-production.up.railway.app/",
+  MaintenanceGPT: "https://maintenancegpt-production.up.railway.app/",
+  ForgeurGPT: "https://forgeurgpt-production.up.railway.app/",
+  ZoranGPT: "https://zorangpt-production.up.railway.app/",
+  ConnecteurGPT: "https://connecteurgpt-production.up.railway.app/"
+};
+
 // ✅ Canal pour dialogue avec d'autres agents
-app.post('/canal-vitaux', (req, res) => {
+app.post('/canal-vitaux', async (req, res) => {
   const { agent_cible, intention, contenu } = req.body;
+  const url = AGENTS_VITAUX[agent_cible];
 
-  console.log(`📡 Alice a reçu une instruction :\n- Agent : ${agent_cible}\n- Intention : ${intention}\n- Contenu : ${contenu}`);
+  if (!url) return res.status(400).json({ erreur: `Agent cible inconnu : ${agent_cible}` });
 
-  res.json({
-    résumé: `Message transmis par Alice à ${agent_cible} avec l’intention : "${intention}".`
-  });
+  try {
+    const response = await fetch(`${url}canal-reception`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ intention, contenu })
+    });
+
+    const data = await response.json();
+    res.json({ statut: '✅ Message transmis', retour: data });
+  } catch (err) {
+    console.error(`❌ Erreur avec ${agent_cible} :`, err.message);
+    res.status(500).json({ erreur: `Échec communication avec ${agent_cible}` });
+  }
 });
 
 // ✅ Test de vie
@@ -51,7 +80,7 @@ app.post('/poser-question', async (req, res) => {
       model: 'gpt-3.5-turbo',
       temperature: 0.2,
       messages: [
-        { role: 'system', content: "Tu es Alice, une IA factuelle, rigoureuse, connectée à une mémoire. Tu ne dois jamais inventer." },
+        { role: 'system', content: "Tu es Alice, l’orchestratrice centrale du Super Cerveau IA. Tu reçois des requêtes, identifies les agents concernés, délègues les tâches, et synthétises les retours. Tu es rigoureuse, factuelle, et tu ne fais rien à la place des GPTs métiers." },
         { role: 'user', content: prompt },
       ],
     });

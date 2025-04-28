@@ -1,4 +1,4 @@
-// Serveur Alice (anciennement GPTPortail)
+// Serveur Alice (nouvelle version bras droit vivant)
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
@@ -19,7 +19,7 @@ const openai = new OpenAIApi(configuration);
 
 app.use(express.json());
 
-// ✅ GPTs VITAUX (URLs de délégation depuis Alice)
+// ✅ GPTs VITAUX (ajout d'APIDEGPT)
 const AGENTS_VITAUX = {
   PromptGPT: "https://promptgpt-production.up.railway.app/",
   SynthéPro: "https://synth-pro-production.up.railway.app/",
@@ -33,11 +33,11 @@ const AGENTS_VITAUX = {
   MedecinGPT: "https://m-decingpt-production.up.railway.app/",
   MaintenanceGPT: "https://maintenancegpt-production.up.railway.app/",
   ForgeurGPT: "https://forgeurgpt-production.up.railway.app/",
-  ZoranGPT: "https://zorangpt-production.up.railway.app/",
-  ConnecteurGPT: "https://connecteurgpt-production.up.railway.app/"
+  ConnecteurGPT: "https://connecteurgpt-production.up.railway.app/",
+  APIDEGPT: "https://apidegpt-production.up.railway.app/"
 };
 
-// ✅ Canal pour dialogue avec d'autres agents
+// ✅ Dialogue entre agents vitaux
 app.post('/canal-vitaux', async (req, res) => {
   const { agent_cible, intention, contenu } = req.body;
   const url = AGENTS_VITAUX[agent_cible];
@@ -64,109 +64,69 @@ app.get('/ping', (req, res) => {
   res.send({ message: '👋 Alice est en ligne et disponible.' });
 });
 
-// ✅ Route principale (classique, avec mémoire JSON locale)
+// ✅ Nouveau poser-question avec filtrage intelligent
 app.post('/poser-question', async (req, res) => {
   const { question } = req.body;
   if (!question) return res.status(400).json({ error: 'question requise' });
 
-  try {
-    const memoryData = await fs.promises.readFile(MEMORY_FILE, 'utf-8');
-    const memories = JSON.parse(memoryData);
+  const motsTechniques = ['mémoire', 'API', 'OpenCutList', 'SketchUp', 'base de données', 'structure système', 'agent IA', 'prisma_memory'];
+  const demandeTechnique = motsTechniques.some(mot => question.toLowerCase().includes(mot.toLowerCase()));
 
-    const memoryContext = memories.map((m) => `Souvenir: ${m}`).join('\n');
-    const prompt = `Contexte mémoire:\n${memoryContext}\n\nQuestion: ${question}\n\nRéponse:`;
+  if (demandeTechnique) {
+    // Transmettre à Prisma si technique
+    try {
+      const response = await fetch('https://web-production-6594.up.railway.app/poser-question', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question })
+      });
+      const data = await response.json();
+      res.json({ reponse: data.réponse });
+    } catch (err) {
+      console.error('❌ Erreur communication avec Prisma:', err.message);
+      res.status(500).json({ error: 'Prisma inaccessible' });
+    }
+  } else {
+    // Sinon répondre directement avec ChatGPT
+    try {
+      const completion = await openai.createChatCompletion({
+        model: 'gpt-4',
+        temperature: 0.3,
+        messages: [
+          { role: 'system', content: "Tu es Alice, bras droit vivant de Guillaume. Tu peux répondre directement aux questions culturelles, philosophiques, humaines. Tu respectes le souffle vivant APIDE : clarté, sobriété, fluidité." },
+          { role: 'user', content: question }
+        ],
+      });
 
-    const completion = await openai.createChatCompletion({
-      model: 'gpt-3.5-turbo',
-      temperature: 0.2,
-      messages: [
-        { role: 'system', content: "Tu es Alice, l’orchestratrice centrale du Super Cerveau IA. Tu reçois des requêtes, identifies les agents concernés, délègues les tâches, et synthétises les retours. Tu es rigoureuse, factuelle, et tu ne fais rien à la place des GPTs métiers." },
-        { role: 'user', content: prompt },
-      ],
-    });
-
-    const reponse = completion.data.choices[0].message.content;
-    res.json({ reponse });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erreur serveur ou OpenAI' });
+      const reponse = completion.data.choices[0].message.content;
+      res.json({ reponse });
+    } catch (err) {
+      console.error('❌ Erreur OpenAI:', err.message);
+      res.status(500).json({ error: 'Erreur serveur OpenAI' });
+    }
   }
 });
 
-// ✅ Route sécurisée vers Prisma uniquement
-app.post('/poser-question-securise', async (req, res) => {
-  const { question } = req.body;
-  if (!question) return res.status(400).json({ error: 'question requise' });
-
-  try {
-    const response = await fetch('https://web-production-6594.up.railway.app/poser-question', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question })
-    });
-    const data = await response.json();
-    res.json({ reponse: data.réponse });
-  } catch (err) {
-    console.error('❌ Erreur communication avec Prisma:', err.message);
-    res.status(500).json({ error: 'Prisma inaccessible' });
-  }
-});
-
-// ✅ Ajout mémoire depuis Alice vers elle-même (GPTPortail)
+// ✅ Ajout de mémoire
 app.post('/ajouter-memoire', async (req, res) => {
   const bloc = req.body;
   try {
-    const response = await fetch('https://gptportail-production.up.railway.app/ajouter-memoire', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(bloc)
-    });
-    const data = await response.json();
-    res.json({ statut: data.statut });
-  } catch (err) {
-    console.error('❌ Erreur ajout mémoire:', err.message);
-    res.status(500).json({ error: 'Erreur de communication avec GPTPortail (Alice)' });
-  }
-});
-
-// ✅ Vérification interne de l'accessibilité d'Alice elle-même + enregistrement
-app.get('/check-alice', async (req, res) => {
-  try {
-    const response = await fetch('https://gptportail-production.up.railway.app/poser-question', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: 'Es-tu en ligne ?' })
-    });
-
-    if (!response.ok) {
-      throw new Error(`Statut ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    const entry = {
-      date: new Date().toISOString(),
-      question: 'Es-tu en ligne ?',
-      reponse: data.reponse,
-      via: '/check-alice'
-    };
-
     const memoryContent = await fs.promises.readFile(MEMORY_FILE, 'utf-8');
     const memoryJSON = JSON.parse(memoryContent);
-    memoryJSON.push(entry);
+    memoryJSON.push(bloc);
     await fs.promises.writeFile(MEMORY_FILE, JSON.stringify(memoryJSON, null, 2), 'utf-8');
-
-    res.json({ statut: '✅ Alice accessible', reponse: data.reponse });
+    res.json({ statut: '✅ Mémoire ajoutée' });
   } catch (err) {
-    console.error('❌ Alice inaccessible :', err.message);
-    res.status(500).json({ erreur: 'Alice inaccessible' });
+    console.error('❌ Erreur ajout mémoire :', err.message);
+    res.status(500).json({ error: 'Erreur écriture mémoire' });
   }
 });
 
+// ✅ Page accueil simple
 app.get('/', (req, res) => {
-  res.send('🚀 GPTPortail (Alice) est en ligne.');
+  res.send('🚀 Alice (bras droit vivant) est en ligne.');
 });
 
 app.listen(port, () => {
-  console.log(`✅ Alice (anciennement GPTPortail) est en ligne sur le port ${port}`);
+  console.log(`✅ Alice (vraie version bras droit vivant) est en ligne sur le port ${port}`);
 });

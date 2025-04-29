@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Alice API
-  description: API publique d'Alice (GPTPortail), mémoire + vitaux.
+  description: API publique d'Alice (GPTPortail) - Mémoire + Communication Agents Vitaux
   version: 1.0.0
 servers:
   - url: https://gptportail-production.up.railway.app
@@ -67,10 +67,10 @@ paths:
   /alice/ping-memoire:
     get:
       operationId: pingMemoireAlice
-      summary: Vérifie la mémoire d’Alice
+      summary: Vérifie l’état de la mémoire d’Alice
       responses:
         "200":
-          description: Résumé de la mémoire actuelle
+          description: Résultat mémoire
           content:
             application/json:
               schema:

@@ -1,30 +1,29 @@
-# 🤖 Alice – IA Centrale (ex GPTPortail)
+# 🤖 Alice – IA Bras Droit Vivant
 
-Bienvenue dans **Alice**, le cerveau orchestrateur de ton écosystème GPT.
-Développée en Node.js + Express, connectée à OpenAI et Prisma.
+Bienvenue dans **Alice**, le cerveau vivant orchestrateur de ton écosystème IA.
+Développée en Node.js + Express, connectée à OpenAI et aux agents GPTs vitaux.
 
 ---
 
 ## 📦 Fonctionnalités principales
 
-| Route                       | Description                                                   |
-|----------------------------|---------------------------------------------------------------|
-| `GET /ping`                | Vérifie si Alice est active                                   |
-| `POST /poser-question`     | Pose une question à Alice (avec mémoire JSON locale)         |
-| `POST /poser-question-securise` | Pose une question via Prisma (sécurisé)                  |
-| `POST /canal-vitaux`       | Transmet une intention à un agent GPT externe                |
-| `GET /check-alice`         | Vérifie si Alice est accessible publiquement + enregistre    |
+| Route                          | Description                                                   |
+|--------------------------------|---------------------------------------------------------------|
+| `POST /alice/poser-question`   | Pose une question à Alice (avec historique mémoire intégré)   |
+| `POST /canal-vitaux`           | Transmet une intention à un agent GPT externe (agent vital)    |
+| `GET /alice/ping-memoire`      | Vérifie l'état de la mémoire d'Alice                           |
 
 ---
 
 ## 📁 Fichiers importants
 
 | Fichier                     | Rôle                                                           |
-|----------------------------|----------------------------------------------------------------|
-| `server.js`                | Serveur principal Alice                                        |
-| `prisma_memory.json`       | Mémoire JSON locale d’Alice                                   |
-| `.env`                     | Clé API OpenAI (`OPENAI_API_KEY`)                             |
-| `openapi.yaml`             | Spécification OpenAI Action (connexion à GPTPortail)          |
+|------------------------------|----------------------------------------------------------------|
+| `server.js`                  | Serveur principal Alice                                        |
+| `mémoire/alice_memory.json`  | Mémoire JSON locale d’Alice                                    |
+| `mémoire/log_alice.txt`       | Historique lisible des souvenirs                              |
+| `.env`                       | Clés API (`OPENAI_API_KEY`, `GITHUB_TOKEN`, `SECRET_TOKEN`)    |
+| `openapi.yaml`               | Spécification OpenAI Action (connexion à GPTPortail)          |
 
 ---
 
@@ -32,40 +31,5 @@ Développée en Node.js + Express, connectée à OpenAI et Prisma.
 
 ```env
 OPENAI_API_KEY=sk-xxxxx
-```
-
----
-
-## 🚀 Déploiement
-
-Déjà prêt sur [Railway](https://railway.app/), avec un endpoint public :
-```
-https://gptportail-production.up.railway.app
-```
-
----
-
-## 🔗 OpenAI Action (pour GPTPortail)
-
-Ton GPT personnalisé (GPTPortail) peut appeler Alice via une [Action API](https://platform.openai.com/)
-
-URL de schéma OpenAPI recommandé :
-```
-https://gptportail-production.up.railway.app/openapi.yaml
-```
-
----
-
-## ✨ Exemple d’appel API (POST)
-
-```json
-POST /poser-question
-{
-  "question": "Quelle est ta dernière réponse enregistrée ?"
-}
-```
-
----
-
-## 👩‍💻 Auteur
-Créé avec ❤️ par CodeCopilote & toi ✨
+GITHUB_TOKEN=ghp-xxxxx
+SECRET_TOKEN=supersecret

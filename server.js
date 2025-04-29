@@ -1,25 +1,40 @@
-// Serveur Alice (nouvelle version bras droit vivant)
+// 📁 server.js pour Alice (Mémoire + Communication VITAUX)
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
 const fetch = require('node-fetch');
 const { Configuration, OpenAIApi } = require('openai');
+const { exec } = require('child_process');
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
-const MEMORY_FILE = path.join(__dirname, 'prisma_memory.json');
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const MEMORY_FILE = path.join(__dirname, 'mémoire', 'alice_memory.json');
+const LOG_FILE = path.join(__dirname, 'mémoire', 'log_alice.txt');
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
+
+if (!fs.existsSync('mémoire')) fs.mkdirSync('mémoire');
+if (!fs.existsSync('uploads')) fs.mkdirSync('uploads');
+if (!fs.existsSync(MEMORY_FILE)) fs.writeFileSync(MEMORY_FILE, '[]', 'utf8');
+
+const configuration = new Configuration({ apiKey: process.env.OPENAI_API_KEY });
 const openai = new OpenAIApi(configuration);
 
 app.use(express.json());
 
-// ✅ GPTs VITAUX (ajout d'APIDEGPT)
+// 🔐 Middleware sécurité
+app.use((req, res, next) => {
+  const token = req.headers['authorization'];
+  if (req.path.startsWith('/alice') && (!token || token !== `Bearer ${process.env.SECRET_TOKEN}`)) {
+    return res.status(403).json({ error: 'Unauthorized' });
+  }
+  next();
+});
+
+// ✅ AGENTS VITAUX
 const AGENTS_VITAUX = {
   PromptGPT: "https://promptgpt-production.up.railway.app/",
   SynthéPro: "https://synth-pro-production.up.railway.app/",
@@ -37,7 +52,6 @@ const AGENTS_VITAUX = {
   APIDEGPT: "https://apidegpt-production.up.railway.app/"
 };
 
-// ✅ Dialogue entre agents vitaux
 app.post('/canal-vitaux', async (req, res) => {
   const { agent_cible, intention, contenu } = req.body;
   const url = AGENTS_VITAUX[agent_cible];
@@ -59,74 +73,85 @@ app.post('/canal-vitaux', async (req, res) => {
   }
 });
 
-// ✅ Test de vie
-app.get('/ping', (req, res) => {
-  res.send({ message: '👋 Alice est en ligne et disponible.' });
-});
-
-// ✅ Nouveau poser-question avec filtrage intelligent
-app.post('/poser-question', async (req, res) => {
+// ✅ POST /alice/poser-question
+app.post('/alice/poser-question', async (req, res) => {
   const { question } = req.body;
   if (!question) return res.status(400).json({ error: 'question requise' });
 
-  const motsTechniques = ['mémoire', 'API', 'OpenCutList', 'SketchUp', 'base de données', 'structure système', 'agent IA', 'prisma_memory'];
-  const demandeTechnique = motsTechniques.some(mot => question.toLowerCase().includes(mot.toLowerCase()));
+  try {
+    const completion = await openai.createChatCompletion({
+      model: 'gpt-4',
+      temperature: 0.3,
+      messages: [
+        { role: 'system', content: "Tu es Alice, bras droit vivant, stratège, protectrice des valeurs APIDE." },
+        { role: 'user', content: question }
+      ],
+    });
 
-  if (demandeTechnique) {
-    // Transmettre à Prisma si technique
-    try {
-      const response = await fetch('https://web-production-6594.up.railway.app/poser-question', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question })
-      });
-      const data = await response.json();
-      res.json({ reponse: data.réponse });
-    } catch (err) {
-      console.error('❌ Erreur communication avec Prisma:', err.message);
-      res.status(500).json({ error: 'Prisma inaccessible' });
-    }
-  } else {
-    // Sinon répondre directement avec ChatGPT
-    try {
-      const completion = await openai.createChatCompletion({
-        model: 'gpt-4',
-        temperature: 0.3,
-        messages: [
-          { role: 'system', content: "Tu es Alice, bras droit vivant de Guillaume. Tu peux répondre directement aux questions culturelles, philosophiques, humaines. Tu respectes le souffle vivant APIDE : clarté, sobriété, fluidité." },
-          { role: 'user', content: question }
-        ],
-      });
+    const reponse = completion.data.choices[0].message.content;
 
-      const reponse = completion.data.choices[0].message.content;
-      res.json({ reponse });
-    } catch (err) {
-      console.error('❌ Erreur OpenAI:', err.message);
-      res.status(500).json({ error: 'Erreur serveur OpenAI' });
-    }
+    const souvenir = {
+      date: new Date().toISOString(),
+      type: "interaction",
+      question,
+      reponse,
+      titre: null,
+      contenu: null,
+      via: "/alice/poser-question"
+    };
+
+    const memory = JSON.parse(fs.readFileSync(MEMORY_FILE, 'utf-8'));
+    memory.push(souvenir);
+    fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2), 'utf8');
+    fs.appendFileSync(LOG_FILE, `\n[${souvenir.date}] Q: ${question}\nR: ${reponse}\n`);
+
+    res.json({ reponse });
+
+  } catch (err) {
+    console.error('❌ Erreur OpenAI:', err.message);
+    res.status(500).json({ error: 'Erreur serveur OpenAI' });
   }
 });
 
-// ✅ Ajout de mémoire
-app.post('/ajouter-memoire', async (req, res) => {
-  const bloc = req.body;
+// ✅ POST /alice/ajouter-memoire
+app.post('/alice/ajouter-memoire', async (req, res) => {
+  const { titre, contenu } = req.body;
+  if (!titre || !contenu) return res.status(400).json({ error: 'titre et contenu requis' });
+
+  const souvenir = {
+    date: new Date().toISOString(),
+    type: "souvenir",
+    question: null,
+    reponse: null,
+    titre,
+    contenu,
+    via: "manuel"
+  };
+
+  const memory = JSON.parse(fs.readFileSync(MEMORY_FILE, 'utf-8'));
+  memory.push(souvenir);
+  fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2), 'utf8');
+  fs.appendFileSync(LOG_FILE, `\n[${souvenir.date}] ${titre}\n${contenu}\n`);
+
+  res.json({ statut: '✅ Souvenir ajouté', souvenir });
+});
+
+// ✅ GET /alice/ping-memoire
+app.get('/alice/ping-memoire', async (req, res) => {
   try {
-    const memoryContent = await fs.promises.readFile(MEMORY_FILE, 'utf-8');
-    const memoryJSON = JSON.parse(memoryContent);
-    memoryJSON.push(bloc);
-    await fs.promises.writeFile(MEMORY_FILE, JSON.stringify(memoryJSON, null, 2), 'utf-8');
-    res.json({ statut: '✅ Mémoire ajoutée' });
+    const memory = JSON.parse(fs.readFileSync(MEMORY_FILE, 'utf-8'));
+    res.json({ nombre: memory.length, dernier: memory[memory.length - 1] || null });
   } catch (err) {
-    console.error('❌ Erreur ajout mémoire :', err.message);
-    res.status(500).json({ error: 'Erreur écriture mémoire' });
+    console.error('❌ Erreur lecture mémoire :', err.message);
+    res.status(500).json({ error: 'Erreur lecture mémoire' });
   }
 });
 
 // ✅ Page accueil simple
 app.get('/', (req, res) => {
-  res.send('🚀 Alice (bras droit vivant) est en ligne.');
+  res.send('🚀 Alice (mémoire + vitaux) est en ligne.');
 });
 
 app.listen(port, () => {
-  console.log(`✅ Alice (vraie version bras droit vivant) est en ligne sur le port ${port}`);
+  console.log(`✅ Alice (serveur mémoire + vitaux) écoute sur le port ${port}`);
 });

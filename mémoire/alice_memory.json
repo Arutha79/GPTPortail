@@ -1,8 +1,11 @@
 [
   {
     "date": "2025-04-15T15:30:00Z",
+    "type": "interaction",
     "question": "Es-tu en ligne ?",
     "reponse": "Oui, Alice est opérationnelle.",
+    "titre": null,
+    "contenu": null,
     "via": "/check-alice"
   }
 ]

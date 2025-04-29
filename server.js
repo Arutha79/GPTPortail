@@ -28,7 +28,6 @@ app.use(express.json());
 app.use((req, res, next) => {
   const protectedRoutes = ['/ajouter-memoire'];
   const apiKey = req.headers['x-api-key'];
-
   if (protectedRoutes.includes(req.path)) {
     if (!apiKey || apiKey !== process.env.SECRET_TOKEN) {
       return res.status(403).json({ error: 'Unauthorized' });
@@ -95,7 +94,11 @@ app.post('/ajouter-memoire', (req, res) => {
     fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2), 'utf8');
     fs.appendFileSync(LOG_FILE, `\n[${souvenir.date}] ${titre}\n${contenu}\n`, 'utf8');
 
-    res.json({ statut: '✅ Souvenir ajouté', souvenir });
+    res.json({
+      message: `Souvenir ajouté : "${titre}".`,
+      statut: '✅ OK',
+      total: memory.length
+    });
   } catch (err) {
     console.error('❌ Erreur enregistrement mémoire:', err.message);
     res.status(500).json({ error: 'Erreur serveur mémoire' });
@@ -106,11 +109,14 @@ app.post('/ajouter-memoire', (req, res) => {
 app.get('/ping-memoire', (req, res) => {
   try {
     const memory = JSON.parse(fs.readFileSync(MEMORY_FILE, 'utf8'));
+    const total = memory.length;
+    const dernierTitre = memory[total - 1]?.titre || "Aucun souvenir";
+
     res.json({
-      message: "✅ Mémoire accessible.",
-      total: memory.length,
-      dernier_titre: memory[memory.length - 1]?.titre || "Aucun souvenir",
-      uptime: process.uptime() + "s",
+      message: `La mémoire est accessible. Il y a ${total} souvenir(s). Dernier : "${dernierTitre}".`,
+      total,
+      dernier_titre: dernierTitre,
+      uptime: `${Math.round(process.uptime())}s`,
       version: "1.0.0"
     });
   } catch (err) {

@@ -139,6 +139,12 @@ app.post('/alice/ajouter-memoire', async (req, res) => {
   res.json({ statut: '✅ Souvenir ajouté', souvenir });
 });
 
+// 🔁 Alias rétrocompatibilité
+app.post('/alice/ajouter-souvenir', (req, res) => {
+  req.url = '/alice/ajouter-memoire';
+  app.handle(req, res);
+});
+
 // ✅ GET /alice/ping-memoire
 app.get('/alice/ping-memoire', async (req, res) => {
   try {

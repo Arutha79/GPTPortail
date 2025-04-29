@@ -25,11 +25,14 @@ const openai = new OpenAIApi(configuration);
 
 app.use(express.json());
 
-// 🔐 Middleware sécurité
+// 🔐 Middleware sécurité uniquement pour ajouter-memoire et upload-fichier
 app.use((req, res, next) => {
-  const token = req.headers['authorization'];
-  if (req.path.startsWith('/alice') && (!token || token !== `Bearer ${process.env.SECRET_TOKEN}`)) {
-    return res.status(403).json({ error: 'Unauthorized' });
+  const sensibles = ['/alice/ajouter-memoire', '/alice/upload-fichier'];
+  if (sensibles.includes(req.path)) {
+    const token = req.headers['authorization'];
+    if (!token || token !== `Bearer ${process.env.SECRET_TOKEN}`) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
   }
   next();
 });

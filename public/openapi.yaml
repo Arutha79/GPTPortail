@@ -1,27 +1,19 @@
 openapi: 3.1.0
 info:
-  title: Alice API
-  description: Public API for Alice (GPTPortail) – Memory + Agent Communication
+  title: API PortailGPT Alice
   version: 1.0.0
+  description: >
+    API mémoire d'Alice – permet de poser une question, ajouter un souvenir,
+    ou consulter l'état de la mémoire.
 
 servers:
   - url: https://gptportail-production.up.railway.app
 
-security:
-  - apiKeyHeader: []
-
-components:
-  securitySchemes:
-    apiKeyHeader:
-      type: apiKey
-      in: header
-      name: x-api-key
-
 paths:
   /poser-question:
     post:
-      operationId: poserQuestionAlice
-      summary: Ask a question to Alice (memory + GPT-4)
+      operationId: poserQuestion
+      summary: Poser une question à Alice
       requestBody:
         required: true
         content:
@@ -34,20 +26,20 @@ paths:
               required:
                 - question
       responses:
-        "200":
-          description: Alice's response
+        '200':
+          description: Réponse générée par Alice
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  reponse:
+                  réponse:
                     type: string
 
   /ajouter-memoire:
     post:
-      operationId: ajouterSouvenirAlice
-      summary: Add a manual memory to Alice
+      operationId: ajouterMemoire
+      summary: Ajouter un souvenir à la mémoire d’Alice
       requestBody:
         required: true
         content:
@@ -55,16 +47,20 @@ paths:
             schema:
               type: object
               properties:
+                date:
+                  type: string
+                  format: date-time
                 titre:
                   type: string
                 contenu:
                   type: string
               required:
+                - date
                 - titre
                 - contenu
       responses:
-        "200":
-          description: Memory successfully added
+        '200':
+          description: Souvenir ajouté avec succès
           content:
             application/json:
               schema:
@@ -72,56 +68,22 @@ paths:
                 properties:
                   statut:
                     type: string
-                  souvenir:
-                    type: object
 
   /ping-memoire:
     get:
-      operationId: pingMemoireAlice
-      summary: Check the memory status of Alice
+      operationId: pingMemoire
+      summary: Vérifie l’état de la mémoire
       responses:
-        "200":
-          description: Memory status result
+        '200':
+          description: Statut mémoire
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  nombre:
-                    type: integer
-                  dernier:
-                    type: object
-
-  /canal-vitaux:
-    post:
-      operationId: envoyerCanalVitaux
-      summary: Send an intention to a vital GPT agent
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                agent_cible:
-                  type: string
-                intention:
-                  type: string
-                contenu:
-                  type: string
-              required:
-                - agent_cible
-                - intention
-                - contenu
-      responses:
-        "200":
-          description: Message sent to the agent
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  statut:
+                  message:
                     type: string
-                  retour:
-                    type: object
+                  total:
+                    type: integer
+                  uptime:
+                    type: string

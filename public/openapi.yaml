@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Alice API
-  description: API publique d'Alice (GPTPortail) – Mémoire + Communication Agents Vitaux
+  description: Public API for Alice (GPTPortail) – Memory + Agent Communication
   version: 1.0.0
 
 servers:
@@ -21,7 +21,7 @@ paths:
   /poser-question:
     post:
       operationId: poserQuestionAlice
-      summary: Poser une question à Alice (mémoire + GPT-4)
+      summary: Ask a question to Alice (memory + GPT-4)
       requestBody:
         required: true
         content:
@@ -35,7 +35,7 @@ paths:
                 - question
       responses:
         "200":
-          description: Réponse d'Alice
+          description: Alice's response
           content:
             application/json:
               schema:
@@ -47,7 +47,7 @@ paths:
   /ajouter-memoire:
     post:
       operationId: ajouterSouvenirAlice
-      summary: Ajouter un souvenir manuel à la mémoire d'Alice
+      summary: Add a manual memory to Alice
       requestBody:
         required: true
         content:
@@ -64,7 +64,7 @@ paths:
                 - contenu
       responses:
         "200":
-          description: Souvenir ajouté
+          description: Memory successfully added
           content:
             application/json:
               schema:
@@ -78,10 +78,10 @@ paths:
   /ping-memoire:
     get:
       operationId: pingMemoireAlice
-      summary: Vérifie l’état de la mémoire d’Alice
+      summary: Check the memory status of Alice
       responses:
         "200":
-          description: Résultat mémoire
+          description: Memory status result
           content:
             application/json:
               schema:
@@ -95,7 +95,7 @@ paths:
   /canal-vitaux:
     post:
       operationId: envoyerCanalVitaux
-      summary: Envoyer une intention à un agent GPT vital
+      summary: Send an intention to a vital GPT agent
       requestBody:
         required: true
         content:
@@ -115,7 +115,7 @@ paths:
                 - contenu
       responses:
         "200":
-          description: Message transmis
+          description: Message sent to the agent
           content:
             application/json:
               schema:

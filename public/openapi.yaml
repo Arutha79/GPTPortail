@@ -3,8 +3,8 @@ info:
   title: API PortailGPT Alice
   version: 1.0.0
   description: >
-    API mémoire d'Alice – permet de poser une question, ajouter un souvenir,
-    ou consulter l'état de la mémoire.
+    API mémoire d'Alice. Permet de poser une question, ajouter un souvenir
+    ou consulter l’état de la mémoire.
 
 servers:
   - url: https://gptportail-production.up.railway.app
@@ -15,7 +15,7 @@ components:
       type: apiKey
       in: header
       name: x-api-key
-  schemas: {}  # Requis même vide pour GPT Builder
+  schemas: {}  # ← requis même vide pour GPT Builder
 
 paths:
   /poser-question:
@@ -28,11 +28,12 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - question
               properties:
                 question:
                   type: string
-              required:
-                - question
+                  example: Quelle est la dernière connexion établie ?
       responses:
         '200':
           description: Réponse générée par Alice
@@ -43,6 +44,45 @@ paths:
                 properties:
                   réponse:
                     type: string
+        '400':
+          description: Requête invalide
+        '500':
+          description: Erreur interne
+
+  /ajouter-memoire:
+    post:
+      operationId: ajouterSouvenir
+      summary: Ajouter un souvenir dans la mémoire d’Alice
+      security:
+        - apiKeyHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - date
+                - titre
+                - contenu
+              properties:
+                date:
+                  type: string
+                  format: date-time
+                  example: 2025-04-29T14:00:00Z
+                titre:
+                  type: string
+                  example: Connexion réussie avec BuilderGPT
+                contenu:
+                  type: string
+                  example: Alice a confirmé l’établissement d’un lien stable avec BuilderGPT.
+      responses:
+        '200':
+          description: Souvenir ajouté avec succès
+        '403':
+          description: Non autorisé (mauvais token)
+        '500':
+          description: Erreur serveur
 
   /ping-memoire:
     get:
@@ -60,40 +100,11 @@ paths:
                     type: string
                   total:
                     type: integer
+                  dernier_titre:
+                    type: string
                   uptime:
                     type: string
-
-  /ajouter-memoire:
-    post:
-      operationId: ajouterMemoire
-      summary: Ajouter un souvenir à la mémoire d’Alice
-      security:
-        - apiKeyHeader: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                date:
-                  type: string
-                  format: date-time
-                titre:
-                  type: string
-                contenu:
-                  type: string
-              required:
-                - date
-                - titre
-                - contenu
-      responses:
-        '200':
-          description: Souvenir ajouté avec succès
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  statut:
+                  version:
                     type: string
+        '500':
+          description: Erreur lecture mémoire

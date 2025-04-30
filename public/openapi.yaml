@@ -1,13 +1,24 @@
 openapi: 3.1.0
 info:
   title: Alice API
-  description: API publique d'Alice (GPTPortail) - Mémoire + Communication Agents Vitaux
+  description: API publique d'Alice (GPTPortail) – Mémoire + Communication Agents Vitaux
   version: 1.0.0
+
 servers:
   - url: https://gptportail-production.up.railway.app
 
+security:
+  - apiKeyHeader: []
+
+components:
+  securitySchemes:
+    apiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-api-key
+
 paths:
-  /alice/poser-question:
+  /poser-question:
     post:
       operationId: poserQuestionAlice
       summary: Poser une question à Alice (mémoire + GPT-4)
@@ -33,7 +44,7 @@ paths:
                   reponse:
                     type: string
 
-  /alice/ajouter-memoire:
+  /ajouter-memoire:
     post:
       operationId: ajouterSouvenirAlice
       summary: Ajouter un souvenir manuel à la mémoire d'Alice
@@ -64,7 +75,7 @@ paths:
                   souvenir:
                     type: object
 
-  /alice/ping-memoire:
+  /ping-memoire:
     get:
       operationId: pingMemoireAlice
       summary: Vérifie l’état de la mémoire d’Alice

@@ -14,8 +14,8 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: JWT  # ou 'API Key' selon préférence
-  schemas: {}  # requis même vide par GPT Builder
+      bearerFormat: JWT
+  schemas: {}  # requis pour GPT Builder, même vide
 
 paths:
   /poser-question:
@@ -35,7 +35,7 @@ paths:
                   type: string
                   example: Quelle est la dernière connexion établie ?
       responses:
-        '200':
+        "200":
           description: Réponse générée par Alice
           content:
             application/json:
@@ -44,9 +44,9 @@ paths:
                 properties:
                   réponse:
                     type: string
-        '400':
+        "400":
           description: Requête invalide
-        '500':
+        "500":
           description: Erreur interne
 
   /ajouter-memoire:
@@ -77,11 +77,11 @@ paths:
                   type: string
                   example: Alice a confirmé l’établissement d’un lien stable avec BuilderGPT.
       responses:
-        '200':
+        "200":
           description: Souvenir ajouté avec succès
-        '403':
+        "403":
           description: Non autorisé
-        '500':
+        "500":
           description: Erreur serveur
 
   /ping-memoire:
@@ -89,7 +89,7 @@ paths:
       operationId: pingMemoire
       summary: Vérifie l’état de la mémoire
       responses:
-        '200':
+        "200":
           description: Statut mémoire
           content:
             application/json:
@@ -106,5 +106,5 @@ paths:
                     type: string
                   version:
                     type: string
-        '500':
+        "500":
           description: Erreur lecture mémoire

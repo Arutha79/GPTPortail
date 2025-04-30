@@ -11,7 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 const MEMORY_DIR = path.join(__dirname, "mémoire");
-const PRIMARY_MEMORY = path.join(MEMORY_DIR, "prisma_memory.json");
+const PRIMARY_MEMORY = path.join(MEMORY_DIR, "alice_memory.json"); // 🔧 ici la correction
 
 const cleApi = process.env.OPENAI_API_KEY;
 const configuration = new Configuration({ apiKey: cleApi });
@@ -136,7 +136,7 @@ app.get("/ping-memoire", (req, res) => {
   try {
     const memory = JSON.parse(fs.readFileSync(PRIMARY_MEMORY, "utf-8"));
     res.json({
-      message: "✅ Mémoire Prisma accessible.",
+      message: "✅ Mémoire Alice accessible.",
       total: memory.historique?.length || 0,
       dernier_titre: memory.historique?.at(-1)?.titre || "Aucun souvenir",
       uptime: `${Math.round(process.uptime())}s`,

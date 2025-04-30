@@ -3,19 +3,19 @@ info:
   title: API PortailGPT Alice
   version: 1.0.0
   description: >
-    API mémoire d'Alice. Permet de poser une question, ajouter un souvenir
-    ou consulter l’état de la mémoire.
+    API mémoire d'Alice. Permet de poser une question,
+    ajouter un souvenir ou consulter l’état de la mémoire.
 
 servers:
   - url: https://gptportail-production.up.railway.app
 
 components:
   securitySchemes:
-    apiKeyHeader:
-      type: apiKey
-      in: header
-      name: x-api-key
-  schemas: {}  # ← requis même vide pour GPT Builder
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT  # ou 'API Key' selon préférence
+  schemas: {}  # requis même vide par GPT Builder
 
 paths:
   /poser-question:
@@ -54,7 +54,7 @@ paths:
       operationId: ajouterSouvenir
       summary: Ajouter un souvenir dans la mémoire d’Alice
       security:
-        - apiKeyHeader: []
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -69,7 +69,7 @@ paths:
                 date:
                   type: string
                   format: date-time
-                  example: 2025-04-29T14:00:00Z
+                  example: 2025-04-30T10:00:00Z
                 titre:
                   type: string
                   example: Connexion réussie avec BuilderGPT
@@ -80,7 +80,7 @@ paths:
         '200':
           description: Souvenir ajouté avec succès
         '403':
-          description: Non autorisé (mauvais token)
+          description: Non autorisé
         '500':
           description: Erreur serveur
 

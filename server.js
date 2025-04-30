@@ -3,7 +3,6 @@ const morgan = require("morgan");
 const fs = require("fs");
 const path = require("path");
 const fetch = require("node-fetch");
-const { exec } = require("child_process");
 const { Configuration, OpenAIApi } = require("openai");
 require("dotenv").config();
 
@@ -11,7 +10,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 const MEMORY_DIR = path.join(__dirname, "mémoire");
-const PRIMARY_MEMORY = path.join(MEMORY_DIR, "alice_memory.json"); // 🔧 ici la correction
+const PRIMARY_MEMORY = path.join(MEMORY_DIR, "alice_memory.json"); // 🔧 corrigé ici
 
 const cleApi = process.env.OPENAI_API_KEY;
 const configuration = new Configuration({ apiKey: cleApi });
@@ -24,10 +23,15 @@ app.use(express.json());
 app.use(morgan("dev"));
 app.use(express.static(path.join(__dirname, "public")));
 
-// 🔐 Middleware Bearer Token
+// 🔐 Middleware Bearer Token + logs
 function secureRoute(req, res, next) {
   const authHeader = req.headers["authorization"];
   const token = authHeader?.split(" ")[1];
+
+  console.log("🔐 Authorization reçu :", authHeader);
+  console.log("🧪 Token extrait :", token);
+  console.log("🎯 Token attendu :", process.env.SECRET_TOKEN);
+
   if (!token || token !== process.env.SECRET_TOKEN) {
     return res.status(403).json({ erreur: "Non autorisé" });
   }
@@ -93,7 +97,7 @@ app.post("/poser-question", async (req, res) => {
       messages: [
         {
           role: "system",
-          content: "Tu es Prisma, IA mémorielle au service de Guillaume."
+          content: "Tu es Alice, mémoire contextuelle du projet GPTPortail."
         },
         {
           role: "user",

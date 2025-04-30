@@ -9,6 +9,14 @@ info:
 servers:
   - url: https://gptportail-production.up.railway.app
 
+components:
+  securitySchemes:
+    apiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-api-key
+  schemas: {}  # Requis même vide pour GPT Builder
+
 paths:
   /poser-question:
     post:
@@ -36,10 +44,31 @@ paths:
                   réponse:
                     type: string
 
+  /ping-memoire:
+    get:
+      operationId: pingMemoire
+      summary: Vérifie l’état de la mémoire
+      responses:
+        '200':
+          description: Statut mémoire
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  total:
+                    type: integer
+                  uptime:
+                    type: string
+
   /ajouter-memoire:
     post:
       operationId: ajouterMemoire
       summary: Ajouter un souvenir à la mémoire d’Alice
+      security:
+        - apiKeyHeader: []
       requestBody:
         required: true
         content:
@@ -67,23 +96,4 @@ paths:
                 type: object
                 properties:
                   statut:
-                    type: string
-
-  /ping-memoire:
-    get:
-      operationId: pingMemoire
-      summary: Vérifie l’état de la mémoire
-      responses:
-        '200':
-          description: Statut mémoire
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  total:
-                    type: integer
-                  uptime:
                     type: string

@@ -7,7 +7,7 @@ const { exec } = require("child_process");
 const { Configuration, OpenAIApi } = require("openai");
 require("dotenv").config();
 
-const { actionneurVivante } = require("./actionneur");
+// const { actionneurVivante } = require("./actionneur"); // ← non utilisé, donc commenté
 const app = express();
 const PORT = process.env.PORT || 3000;
 
